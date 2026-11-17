@@ -22,7 +22,14 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 
 # Garante o MIME correto para módulos JS e JSON
-Handler.extensions_map.update({".js": "text/javascript", ".json": "application/json"})
+Handler.extensions_map.update({
+    ".js": "text/javascript",
+    ".json": "application/json",
+    ".png": "image/png",
+    ".ogg": "audio/ogg",
+    ".mp3": "audio/mpeg",
+    ".wav": "audio/wav",
+})
 
 
 if __name__ == "__main__":

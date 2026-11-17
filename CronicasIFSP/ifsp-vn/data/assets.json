@@ -1,0 +1,24 @@
+{
+  "_comentario": "Manifesto: liga o ID usado no roteiro ao caminho real do arquivo. Para trocar um arquivo, mude só aqui.",
+  "base": "assets/",
+  "fundos": {
+    "bg_corredor_manha": "",
+    "bg_biblioteca_manha": "",
+    "bg_sala_de_aula": ""
+  },
+  "sprites": {
+    "fabiana_equilibrando_pastas": "",
+    "fabio_sorriso_calmo": "",
+    "fabio_observando": ""
+  },
+  "musicas": {
+    "bgm_manha_agitada": ""
+  },
+  "sfx": {
+    "sfx_passadas_apressadas": "",
+    "sfx_sinal": "",
+    "sfx_vibrar_celular": "",
+    "sfx_desbloquear": "",
+    "sfx_batida_dramatica": ""
+  }
+}
