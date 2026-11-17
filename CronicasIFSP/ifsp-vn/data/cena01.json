@@ -1,0 +1,10 @@
+{
+  "titulo": "Primeiro dia no IFSP",
+  "fundo": null,
+  "linhas": [
+    { "personagem": "",         "texto": "Segunda-feira, 6h50. O portão do campus ainda está cheio de gente tentando entrar antes do sinal." },
+    { "personagem": "Você",     "texto": "Será que eu decorei direito o número da sala? Era a 204 ou a 402?" },
+    { "personagem": "Veterano", "texto": "Primeiro ano, né? A sala é a 204. E dica de ouro: chega cedo na fila do bandejão." },
+    { "personagem": "Você",     "texto": "Valeu! Vou seguir essa dica." }
+  ]
+}
