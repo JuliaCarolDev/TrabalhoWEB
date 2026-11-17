@@ -1,0 +1,22 @@
+{
+  "narrador": {
+    "nome": "",
+    "cor": "#f2f5f0",
+    "estilo": "narracao"
+  },
+  "protagonista": {
+    "nome": "Você",
+    "cor": "#7cc4ff",
+    "estilo": "normal"
+  },
+  "fabiana": {
+    "nome": "Profª Fabiana",
+    "cor": "#e8a23c",
+    "estilo": "normal"
+  },
+  "fabio": {
+    "nome": "Fábio",
+    "cor": "#e8453c",
+    "estilo": "normal"
+  }
+}

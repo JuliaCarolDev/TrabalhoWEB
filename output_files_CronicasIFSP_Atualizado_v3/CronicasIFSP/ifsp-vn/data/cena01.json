@@ -1,0 +1,129 @@
+{
+  "id": "ato1_cena1",
+  "titulo": "Ato I — O Despertar no Bloco Acadêmico",
+  "inicio": "inicio",
+
+  "variaveis": {
+    "riscoCAI": 0,
+    "sobrevivencia": 0,
+    "celularConfiscado": false,
+    "interacaoRapida": false
+  },
+
+  "rotulos": {
+    "riscoCAI":          { "nome": "Risco CAI",               "unidade": "%", "cor": "#d9342b" },
+    "sobrevivencia":     { "nome": "Sobrevivência acadêmica", "unidade": "%", "cor": "#2f9e41" },
+    "celularConfiscado": { "nome": "Celular",                 "verdadeiro": "confiscado pela CAI", "falso": "seguro no bolso" },
+    "interacaoRapida":   { "nome": "Interação rápida",        "verdadeiro": "desbloqueada",        "falso": "bloqueada" }
+  },
+
+  "nos": {
+
+    "inicio": [
+      { "cmd": "fundo",  "id": "bg_corredor_manha" },
+      { "cmd": "musica", "id": "bgm_manha_agitada" },
+
+      { "cmd": "fala", "quem": "narrador", "texto": "Segunda-feira. Sete e dez da manhã. No Instituto Federal de São Paulo, o tempo funciona em uma dimensão própria: o fim de semana dura cinco minutos, e a aula dupla de segunda parece uma era geológica." },
+      { "cmd": "fala", "quem": "narrador", "texto": "Você ajusta a alça da mochila enquanto caminha pelo corredor principal. O aroma característico de café recém-passado vindo da sala dos professores mistura-se ao som de zíperes sendo fechados na pressa e discussões desesperadas sobre uma lista de exercícios que ninguém lembrava que era para hoje." },
+
+      { "cmd": "sfx", "id": "sfx_passadas_apressadas" },
+      { "cmd": "mostrar", "personagem": "fabiana", "sprite": "fabiana_equilibrando_pastas", "posicao": "centro" },
+      { "cmd": "fala", "quem": "fabiana", "texto": "Com licença, com licença! Cuidado com Drummond! Se esse livro cair no chão antes das sete e meia, a segunda-feira perde todo o lirismo!" },
+      { "cmd": "esconder", "personagem": "fabiana" },
+
+      { "cmd": "pensamento", "quem": "protagonista", "texto": "A Profª Fabiana já está no ritmo máximo antes mesmo do primeiro sinal. Se o café dela acabar antes do intervalo, o bloco inteiro corre perigo." },
+
+      { "cmd": "sfx", "id": "sfx_sinal" },
+      { "cmd": "fala", "quem": "narrador", "texto": "O sinal ecoa pelos corredores como um decreto oficial. Instantaneamente, o fluxo de alunos acelera. No entanto, bem no meio do trajeto até a sua sala, seu bolso vibra." },
+
+      { "cmd": "sfx", "id": "sfx_vibrar_celular" },
+      { "cmd": "pensamento", "quem": "protagonista", "texto": "O grupo da turma no WhatsApp. Só mandam mensagem nessa hora quando algum professor faltou, mudou de sala ou quando alguém descobriu que a entrega do trabalho foi adiantada." },
+
+      { "cmd": "fala", "quem": "narrador", "texto": "Você olha rapidamente para os lados. O corredor está esvaziando, mas o portão que dá acesso ao corredor da CAI (Coordenadoria de Apoio ao Ensino) está a poucos metros dali. O que você faz?" },
+
+      {
+        "cmd": "escolha",
+        "id": "decisao_corredor",
+        "titulo": "O Dilema do Corredor",
+        "opcoes": [
+          {
+            "texto": "Pegar o celular rapidamente para ler a mensagem.",
+            "efeitos": [ { "cmd": "somar", "var": "riscoCAI", "valor": 15 } ],
+            "ir": "ramo_a"
+          },
+          {
+            "texto": "Guardar o celular no bolso e correr direto para a sala.",
+            "efeitos": [ { "cmd": "somar", "var": "sobrevivencia", "valor": 5 } ],
+            "ir": "ramo_b"
+          },
+          {
+            "texto": "Entrar rapidamente na Biblioteca para checar o celular longe do corredor.",
+            "efeitos": [
+              { "cmd": "somar",   "var": "riscoCAI", "valor": 5 },
+              { "cmd": "definir", "var": "interacaoRapida", "valor": true }
+            ],
+            "ir": "ramo_c"
+          }
+        ]
+      }
+    ],
+
+    "ramo_a": [
+      { "cmd": "fala", "quem": "narrador", "texto": "“É só uma olhadinha de três segundos”, você pensa. A clássica frase que precede noventa por cento das tragédias estudantis no IFSP." },
+      { "cmd": "sfx", "id": "sfx_desbloquear" },
+      { "cmd": "mensagem_celular", "texto": "GENTE, ALGUÉM TROUXE CARTOLINA?! A PROFª PAULA DISSE QUE..." },
+      { "cmd": "fala", "quem": "narrador", "texto": "Você nem termina de ler a frase. Uma sombra perfeitamente alinhada projeta-se sobre a tela do seu aparelho, bloqueando o reflexo da luz do corredor. O burburinho ao redor parece silenciar." },
+
+      { "cmd": "musica", "id": null },
+      { "cmd": "sfx", "id": "sfx_batida_dramatica" },
+      { "cmd": "mostrar", "personagem": "fabio", "sprite": "fabio_sorriso_calmo", "posicao": "direita", "entrada": "deslizar_direita" },
+
+      { "cmd": "fala", "quem": "fabio", "texto": "Bom dia! Que manhã agradável, não é? Sol brilhando, semana começando, todo mundo cheio de disposição para aprender..." },
+      { "cmd": "fala", "quem": "protagonista", "texto": "B-bom dia, Fábio..." },
+      { "cmd": "fala", "quem": "fabio", "acao": "mantendo o tom gentil, mas apontando suavemente com o queixo para a sua mão", "texto": "Pois é. E justamente por ser um momento tão propício aos estudos, a gente sabe que esse aparelhinho aí fora da sala de aula, depois do sinal, acaba atrapalhando o foco. Me passa ele aqui rapidinho, por favor? No final do turno você passa lá na CAI para a gente conversar e eu te devolvo." },
+      { "cmd": "fala", "quem": "narrador", "texto": "Não há gritos. Não há escândalo. É exatamente a calma cirúrgica do Fábio que torna a CAI uma lenda urbana entre os calouros e um trauma respeitado pelos veteranos." },
+
+      { "cmd": "definir", "var": "celularConfiscado", "valor": true },
+      { "cmd": "aviso",   "texto": "Celular confiscado" },
+      { "cmd": "objetivo", "texto": "Sobreviver ao balcão da CAI às 12h15" },
+
+      { "cmd": "fala", "quem": "fabio", "texto": "Boa aula! E pode ir tranquilo, que a sala já vai fechar." },
+      { "cmd": "fala", "quem": "narrador", "texto": "Você entrega o aparelho com o coração apertado e segue para a sala de aula com a sensação de que a semana mal começou e você já está no modo difícil." },
+
+      { "cmd": "esconder", "personagem": "fabio" },
+      { "cmd": "ir", "no": "encerramento" }
+    ],
+
+    "ramo_b": [
+      { "cmd": "fala", "quem": "narrador", "texto": "O instinto de sobrevivência fala mais alto. Você ignora a vibração no bolso, aperta o passo e vira no corredor da sua sala justamente no instante em que a porta da CAI se abre ao fundo." },
+
+      { "cmd": "mostrar", "personagem": "fabio", "sprite": "fabio_observando", "posicao": "fundo" },
+      { "cmd": "fala", "quem": "fabio", "acao": "acenando de longe com um sorriso simpático", "texto": "Bom dia! Ótima semana de estudos!" },
+      { "cmd": "fala", "quem": "protagonista", "texto": "Bom dia, Fábio! Igualmente!" },
+      { "cmd": "esconder", "personagem": "fabio" },
+
+      { "cmd": "pensamento", "quem": "protagonista", "texto": "Ufa. Hoje não. Meu celular continua seguro no bolso e minha ficha segue intacta." },
+      { "cmd": "fala", "quem": "narrador", "texto": "Você entra na sala exatamente quando a Profª Ana Lúcia está apoiando o livro de Filosofia sobre a mesa, pronta para começar o dia questionando a própria existência do horário das sete e quinze." },
+
+      { "cmd": "aviso", "texto": "Celular seguro  |  Sobrevivência Acadêmica +5%" },
+      { "cmd": "ir", "no": "encerramento" }
+    ],
+
+    "ramo_c": [
+      { "cmd": "fala", "quem": "narrador", "texto": "Você dá um passo lateral rápido e desliza para dentro da Biblioteca antes que qualquer servidor da CAI olhe na direção do corredor." },
+
+      { "cmd": "fundo", "id": "bg_biblioteca_manha" },
+      { "cmd": "fala", "quem": "narrador", "texto": "O ambiente é fresco e silencioso — exceto pela sala de estudo número 2, onde três alunos gesticulam desesperadamente em câmera lenta atrás do vidro enquanto tentam terminar um cartaz de Biologia." },
+      { "cmd": "fala", "quem": "narrador", "texto": "Você checa o celular discretamente atrás de uma estante de Literatura Brasileira. Era só um meme sobre o café da cantina. Você guarda o aparelho, respira aliviado e sai em direção à sala de aula a tempo da chamada." },
+
+      { "cmd": "aviso", "texto": "Celular seguro  |  Risco CAI +5%" },
+      { "cmd": "ir", "no": "encerramento" }
+    ],
+
+    "encerramento": [
+      { "cmd": "fundo", "id": "bg_sala_de_aula" },
+      { "cmd": "fala", "quem": "narrador", "texto": "Você se senta na sua carteira e abre o caderno. Pela janela, o campus inteiro já está a todo vapor. Entre teorias evolutivas, poesias espalhadas, ensaios teatrais, biscoitos na diretoria e a vigilância implacável da CAI, a sua semana no IFSP começou oficialmente." },
+      { "cmd": "fim_ato", "titulo": "Fim do Ato I", "proximo": "Ato II: O Turno da Manhã e o Caos Acadêmico" }
+    ]
+  }
+}
