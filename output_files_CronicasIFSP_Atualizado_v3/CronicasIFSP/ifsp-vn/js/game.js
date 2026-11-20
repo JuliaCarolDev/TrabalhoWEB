@@ -1,11 +1,6 @@
 // NÚCLEO DO JOGO
-//
-// - Máquina de estados: CARREGANDO → TITULO → DIALOGO ⇄ ESCOLHA → FIM_ATO
-// - Executor de comandos: lê o roteiro (JSON) e trata cada "cmd" num switch.
-//     * Comandos instantâneos (fundo, musica, sfx, somar...) rodam em sequência.
-//     * Comandos que esperam o jogador (fala, pensamento, escolha...) PARAM
-//       o executor; o jogo só continua quando o jogador clica.
-// - Fundos e sprites ausentes viram placeholders coloridos (modo de teste).
+// Inclui: Barra inferior discreta, Histórico, Pular, Automático, Salvar/Carregar preciso,
+// Reputação por personagem, Inventário e Configurações.
 
 import { CONFIG } from "./config.js";
 import { Entrada } from "./input.js";
@@ -14,7 +9,20 @@ import { Som } from "./som.js";
 import { Roteiro } from "./roteiro.js";
 import { Menu } from "./menu.js";
 import { Salvamento } from "./salvamento.js";
-import { desenharLousa, desenharCracha, desenharTitulo, desenharTituloJogo, desenharMenu, desenharFimAtoEstilizado } from "./visual.js";
+import {
+  desenharLousa,
+  desenharCracha,
+  desenharTitulo,
+  desenharTituloJogo,
+  desenharMenu,
+  desenharBarraInferior,
+  desenharStatusCompacto,
+  desenharModalHistorico,
+  desenharModalReputacao,
+  desenharModalInventario,
+  desenharModalConfiguracoes,
+  desenharFimAtoEstilizado,
+} from "./visual.js";
 
 const Estado = Object.freeze({
   CARREGANDO: "carregando",
@@ -24,13 +32,16 @@ const Estado = Object.freeze({
   PAUSA: "pausa",
   DIALOGO: "dialogo",
   ESCOLHA: "escolha",
+  HISTORICO: "historico",
+  REPUTACAO: "reputacao",
+  INVENTARIO: "inventario",
+  CONFIGURACOES: "configuracoes",
   FIM_ATO: "fim_ato",
   ERRO: "erro",
 });
 
 export class Jogo {
   constructor(canvas) {
-    // ---- Configuração do Canvas ----
     this.canvas = canvas;
     this.canvas.width = CONFIG.LARGURA;
     this.canvas.height = CONFIG.ALTURA;
@@ -43,12 +54,25 @@ export class Jogo {
     this.mensagemErro = "";
     this.debug = CONFIG.DEBUG;
 
-    this.menu = null;            // menu aberto no momento (principal, pausa, slots...)
-    this.slotsModo = "carregar"; // "carregar" | "salvar"
-    this.origem = "menu";        // de onde a tela de slots foi aberta
-    this.estadoPausado = null;   // estado do jogo enquanto está em pausa
+    this.menu = null;
+    this.slotsModo = "carregar";
+    this.origem = "menu";
+    this.estadoAnteriorModal = null;
 
-    this.dados = null;     // { cena, assets, personagens, midia }
+    // Controles de VN (Automático, Pular, Histórico, Configurações)
+    this.modoAuto = false;
+    this.modoPular = false;
+    this.timerAuto = 0;
+    this.timerPular = 0;
+    this.velocidadeTexto = CONFIG.CARACTERES_POR_SEGUNDO;
+    this.tempoEsperaAuto = 2.0;
+
+    this.historico = [];
+    this.scrollHistorico = 0;
+    this.itemInventarioSel = 0;
+    this.botoesBarra = [];
+
+    this.dados = null;
     this.roteiro = null;
     this.som = null;
     this._zerarCena();
@@ -57,26 +81,31 @@ export class Jogo {
     this._loop = this._loop.bind(this);
   }
 
-  // Tudo que pertence a UMA execução da cena (limpo ao reiniciar)
   _zerarCena() {
     this.fundoId = null;
-    this.sprites = {};          // { idPersonagem: { sprite, posicao, entrada, t } }
-    this.dialogo = null;        // { tipo, quem, acao, texto, linhas }
-    this.caracteres = 0;        // progresso da máquina de escrever
+    this.sprites = {};
+    this.dialogo = null;
+    this.caracteres = 0;
     this.escolha = null;
     this.selecionada = 0;
     this.mouseAnterior = { x: -1, y: -1 };
-    this.avisos = [];           // notificações temporárias
+    this.avisos = [];
     this.objetivos = [];
-    this.eventos = [];          // log de depuração
+    this.eventos = [];
+    this.historico = [];
+    this.scrollHistorico = 0;
+    this.itemInventarioSel = 0;
+    this.modoAuto = false;
+    this.modoPular = false;
+    this.timerAuto = 0;
+    this.timerPular = 0;
     this.fimAto = null;
+    this.pontoSalvo = { no: "inicio", indice: 0 };
   }
-
-  // ---------- Inicialização ----------
 
   async iniciar() {
     this.canvas.focus();
-    requestAnimationFrame(this._loop);   // o loop já roda durante o carregamento
+    requestAnimationFrame(this._loop);
 
     try {
       this.dados = await carregarTudo((feitos, total) => {
@@ -84,11 +113,6 @@ export class Jogo {
       });
       this.roteiro = new Roteiro(this.dados.cena);
       this.som = new Som(this.dados.midia);
-
-      const ausentes = this.dados.midia.ausentes;
-      if (ausentes.length) {
-        console.warn(`${ausentes.length} arquivo(s) de mídia não encontrados (usando placeholders):`, ausentes);
-      }
       this._abrirMenu();
     } catch (erro) {
       console.error(erro);
@@ -96,8 +120,6 @@ export class Jogo {
       this.estado = Estado.ERRO;
     }
   }
-
-  // ---------- Loop Principal ----------
 
   _loop(agora) {
     const dt = Math.min((agora - this.ultimoTempo) / 1000, 0.1);
@@ -109,8 +131,6 @@ export class Jogo {
 
     requestAnimationFrame(this._loop);
   }
-
-  // ---------- Atualização ----------
 
   atualizar(dt) {
     if (this.entrada.apertou("F2")) this.debug = !this.debug;
@@ -137,6 +157,20 @@ export class Jogo {
       case Estado.ESCOLHA:
         this._atualizarEscolha();
         break;
+      case Estado.HISTORICO:
+        this._atualizarHistorico();
+        break;
+      case Estado.REPUTACAO:
+        if (this.entrada.cliqueNesteFrame || this.entrada.apertou("Enter") || this.entrada.apertou("Space")) {
+          this._fecharModal();
+        }
+        break;
+      case Estado.INVENTARIO:
+        this._atualizarInventario();
+        break;
+      case Estado.CONFIGURACOES:
+        this._atualizarConfiguracoes();
+        break;
       case Estado.FIM_ATO:
         if (this.entrada.querAvancar()) this._reiniciar();
         break;
@@ -151,27 +185,137 @@ export class Jogo {
     this.eventos = this.eventos.filter((e) => e.resta > 0);
   }
 
-  _atualizarDialogo(dt) {
-    const total = this.dialogo.texto.length;
+  // ---------- Barra Inferior Discreta ----------
 
-    if (this.caracteres < total) {
-      this.caracteres = Math.min(total, this.caracteres + CONFIG.CARACTERES_POR_SEGUNDO * dt);
-    }
+  _verificarCliqueBarraInferior() {
+    if (!this.entrada.cliqueNesteFrame || !this.botoesBarra.length) return false;
+    const m = this.entrada.mouse;
+    const btn = this.botoesBarra.find(
+      (b) => m.x >= b.x && m.x <= b.x + b.w && m.y >= b.y && m.y <= b.y + b.h
+    );
+    if (!btn) return false;
 
-    if (this.entrada.querAvancar()) {
-      if (this.caracteres < total) this.caracteres = total;   // 1º clique: completa
-      else this._avancarRoteiro();                            // 2º clique: segue
+    this._executarAcaoBarra(btn.id);
+    return true;
+  }
+
+  _executarAcaoBarra(id) {
+    switch (id) {
+      case "historico":
+        this.modoAuto = false;
+        this.modoPular = false;
+        this.estadoAnteriorModal = this.estado;
+        this.scrollHistorico = Math.max(0, this.historico.length - 6);
+        this.estado = Estado.HISTORICO;
+        break;
+      case "pular":
+        if (this.estado === Estado.DIALOGO) {
+          this.modoPular = !this.modoPular;
+          if (this.modoPular) this.modoAuto = false;
+        }
+        break;
+      case "auto":
+        if (this.estado === Estado.DIALOGO) {
+          this.modoAuto = !this.modoAuto;
+          if (this.modoAuto) this.modoPular = false;
+          this.timerAuto = 0;
+        }
+        break;
+      case "reputacao":
+        this.modoAuto = false;
+        this.modoPular = false;
+        this.estadoAnteriorModal = this.estado;
+        this.estado = Estado.REPUTACAO;
+        break;
+      case "inventario":
+        this.modoAuto = false;
+        this.modoPular = false;
+        this.estadoAnteriorModal = this.estado;
+        this.itemInventarioSel = 0;
+        this.estado = Estado.INVENTARIO;
+        break;
+      case "salvar":
+        this.modoAuto = false;
+        this.modoPular = false;
+        this.estadoAnteriorModal = this.estado;
+        this._abrirSlots("salvar", "jogo");
+        break;
+      case "config":
+        this.modoAuto = false;
+        this.modoPular = false;
+        this.estadoAnteriorModal = this.estado;
+        this.estado = Estado.CONFIGURACOES;
+        break;
     }
   }
 
+  _fecharModal() {
+    this.estado = this.estadoAnteriorModal || Estado.DIALOGO;
+    this.estadoAnteriorModal = null;
+  }
+
+  // ---------- Diálogo & Modos Auto / Pular ----------
+
+  _atualizarDialogo(dt) {
+    // Atalhos rápidos de teclado
+    if (this.entrada.apertou("KeyH")) return this._executarAcaoBarra("historico");
+    if (this.entrada.apertou("KeyA")) return this._executarAcaoBarra("auto");
+    if (this.entrada.apertou("KeyR")) return this._executarAcaoBarra("reputacao");
+    if (this.entrada.apertou("KeyI")) return this._executarAcaoBarra("inventario");
+
+    // Primeiro verifica se o jogador clicou em algum botão da barra inferior
+    if (this._verificarCliqueBarraInferior()) return;
+
+    const total = this.dialogo.texto.length;
+
+    // Modo Pular (avança rapidamente até a próxima escolha ou fim de ato)
+    if (this.modoPular) {
+      this.caracteres = total;
+      this.timerPular += dt;
+      if (this.timerPular >= 0.14) {
+        this.timerPular = 0;
+        this._avancarRoteiro();
+      }
+      if (this.entrada.querAvancar()) this.modoPular = false;
+      return;
+    }
+
+    // Revelação normal do texto
+    if (this.caracteres < total) {
+      this.caracteres = Math.min(total, this.caracteres + this.velocidadeTexto * dt);
+    } else if (this.modoAuto) {
+      this.timerAuto += dt;
+      if (this.timerAuto >= this.tempoEsperaAuto) {
+        this.timerAuto = 0;
+        this._avancarRoteiro();
+        return;
+      }
+    }
+
+    if (this.entrada.querAvancar()) {
+      this.timerAuto = 0;
+      if (this.caracteres < total) {
+        this.caracteres = total;
+      } else {
+        this._avancarRoteiro();
+      }
+    }
+  }
+
+  // ---------- Escolha ----------
+
   _atualizarEscolha() {
+    this.modoPular = false;
+    this.modoAuto = false;
+
+    if (this._verificarCliqueBarraInferior()) return;
+
     const e = this.entrada;
     const opcoes = this.escolha.opcoes;
     const n = opcoes.length;
     const botoes = this._geometriaBotoes();
     const m = e.mouse;
 
-    // Hover: só quando o mouse REALMENTE se mexeu (não briga com o teclado)
     if (m.x !== this.mouseAnterior.x || m.y !== this.mouseAnterior.y) {
       this.mouseAnterior = { x: m.x, y: m.y };
       const i = this._botaoSob(m, botoes);
@@ -181,7 +325,6 @@ export class Jogo {
     if (e.apertou("ArrowUp") || e.apertou("KeyW")) this.selecionada = (this.selecionada - 1 + n) % n;
     if (e.apertou("ArrowDown") || e.apertou("KeyS")) this.selecionada = (this.selecionada + 1) % n;
 
-    // Atalhos numéricos: 1, 2, 3...
     for (let i = 0; i < Math.min(n, 9); i++) {
       if (e.apertou(`Digit${i + 1}`) || e.apertou(`Numpad${i + 1}`)) {
         this._escolher(i);
@@ -199,7 +342,12 @@ export class Jogo {
 
   _escolher(indice) {
     const opcao = this.escolha.opcoes[indice];
-    this._log(`escolha: ${opcao.texto}`);
+    this.historico.push({
+      quem: "Você (Escolha)",
+      cor: "#7cc4ff",
+      texto: `▸ ${opcao.texto}`,
+    });
+
     for (const efeito of opcao.efeitos ?? []) this._executar(efeito);
     this.escolha = null;
     try {
@@ -210,8 +358,98 @@ export class Jogo {
     this._avancarRoteiro();
   }
 
+  // ---------- Modais (Histórico, Inventário, Configurações) ----------
+
+  _atualizarHistorico() {
+    const e = this.entrada;
+    const maxScroll = Math.max(0, this.historico.length - 6);
+    if (e.apertou("ArrowUp") || e.apertou("KeyW")) {
+      this.scrollHistorico = Math.max(0, this.scrollHistorico - 1);
+    }
+    if (e.apertou("ArrowDown") || e.apertou("KeyS")) {
+      this.scrollHistorico = Math.min(maxScroll, this.scrollHistorico + 1);
+    }
+    if (e.cliqueNesteFrame) {
+      const m = e.mouse;
+      // Botão fechar no canto superior direito do modal
+      if (m.x >= 960 && m.x <= 1060 && m.y >= 115 && m.y <= 155) {
+        this._fecharModal();
+      } else if (m.y < 360) {
+        this.scrollHistorico = Math.max(0, this.scrollHistorico - 1);
+      } else {
+        this.scrollHistorico = Math.min(maxScroll, this.scrollHistorico + 1);
+      }
+    }
+  }
+
+  _atualizarInventario() {
+    const e = this.entrada;
+    const itens = this.roteiro.inventario;
+    if (itens.length > 0) {
+      if (e.apertou("ArrowUp") || e.apertou("KeyW")) {
+        this.itemInventarioSel = (this.itemInventarioSel - 1 + itens.length) % itens.length;
+      }
+      if (e.apertou("ArrowDown") || e.apertou("KeyS")) {
+        this.itemInventarioSel = (this.itemInventarioSel + 1) % itens.length;
+      }
+    }
+    if (e.cliqueNesteFrame) {
+      const m = e.mouse;
+      // Verifica clique nos itens da lista
+      for (let i = 0; i < itens.length; i++) {
+        const iy = 215 + i * 58;
+        if (m.x >= 250 && m.x <= 630 && m.y >= iy && m.y <= iy + 48) {
+          this.itemInventarioSel = i;
+          return;
+        }
+      }
+      // Botão fechar
+      if (m.x >= 940 && m.x <= 1040 && m.y >= 125 && m.y <= 165) {
+        this._fecharModal();
+      }
+    }
+  }
+
+  _atualizarConfiguracoes() {
+    const e = this.entrada;
+    if (e.cliqueNesteFrame) {
+      const m = e.mouse;
+      // Controles de Música (- e +)
+      if (m.y >= 245 && m.y <= 285) {
+        if (m.x >= 620 && m.x <= 665) {
+          CONFIG.VOLUME.musica = Math.max(0, +(CONFIG.VOLUME.musica - 0.1).toFixed(1));
+          this.som.atualizarVolume();
+        } else if (m.x >= 835 && m.x <= 880) {
+          CONFIG.VOLUME.musica = Math.min(1, +(CONFIG.VOLUME.musica + 0.1).toFixed(1));
+          this.som.atualizarVolume();
+        }
+      }
+      // Controles de Efeitos Sonoros (- e +)
+      if (m.y >= 315 && m.y <= 355) {
+        if (m.x >= 620 && m.x <= 665) {
+          CONFIG.VOLUME.sfx = Math.max(0, +(CONFIG.VOLUME.sfx - 0.1).toFixed(1));
+        } else if (m.x >= 835 && m.x <= 880) {
+          CONFIG.VOLUME.sfx = Math.min(1, +(CONFIG.VOLUME.sfx + 0.1).toFixed(1));
+          this.som.tocarSfx("sfx_sinal");
+        }
+      }
+      // Velocidade do texto
+      if (m.y >= 385 && m.y <= 425) {
+        if (m.x >= 620 && m.x <= 665) {
+          this.velocidadeTexto = Math.max(20, this.velocidadeTexto - 15);
+        } else if (m.x >= 835 && m.x <= 880) {
+          this.velocidadeTexto = Math.min(120, this.velocidadeTexto + 15);
+        }
+      }
+      // Botão Fechar
+      if (m.x >= 540 && m.x <= 740 && m.y >= 490 && m.y <= 540) {
+        this._fecharModal();
+      }
+    }
+  }
+
   _reiniciar() {
-    this.som.pararMusica();
+    if (this.som) this.som.pararMusica(); // Garante que para a música ao reiniciar
     this.roteiro.reiniciar();
     this._zerarCena();
     this._abrirMenu();
@@ -223,7 +461,7 @@ export class Jogo {
     this.estado = Estado.ERRO;
   }
 
-  // ---------- Menus, pausa e salvamento ----------
+  // ---------- Menus, Pausa e Salvamento ----------
 
   _abrirMenu() {
     this.estado = Estado.MENU;
@@ -252,16 +490,23 @@ export class Jogo {
     this.menu = new Menu([{ texto: "Voltar" }], CONFIG.MENU_CREDITOS);
   }
 
-  // Esc: pausa durante o jogo; volta uma tela nos outros menus
   _aoApertarEsc() {
     switch (this.estado) {
       case Estado.DIALOGO:
       case Estado.ESCOLHA:
-        this.estadoPausado = this.estado;
+        this.modoAuto = false;
+        this.modoPular = false;
+        this.estadoAnteriorModal = this.estado;
         this._montarMenuPausa();
         return true;
       case Estado.PAUSA:
         this._retomar();
+        return true;
+      case Estado.HISTORICO:
+      case Estado.REPUTACAO:
+      case Estado.INVENTARIO:
+      case Estado.CONFIGURACOES:
+        this._fecharModal();
         return true;
       case Estado.SLOTS:
       case Estado.CREDITOS:
@@ -281,7 +526,7 @@ export class Jogo {
   }
 
   _retomar() {
-    this.estado = this.estadoPausado;
+    this.estado = this.estadoAnteriorModal || Estado.DIALOGO;
     this.menu = null;
   }
 
@@ -291,7 +536,7 @@ export class Jogo {
     else if (i === 1) this._abrirSlots("salvar", "pausa");
     else if (i === 2) this._abrirSlots("carregar", "pausa");
     else if (i === 3) {
-      this.som.pararMusica();
+      if (this.som) this.som.pararMusica(); // Para a música ao voltar para o menu principal
       this.roteiro.reiniciar();
       this._zerarCena();
       this._abrirMenu();
@@ -322,40 +567,54 @@ export class Jogo {
   _usarSlot(n) {
     if (this.slotsModo === "salvar") {
       const ok = Salvamento.gravar(n, this._snapshot());
-      this._aviso(ok ? `Jogo salvo no slot ${n}` : "Não foi possível salvar (armazenamento bloqueado)");
+      this._aviso(ok ? `Progresso salvo com sucesso no Slot ${n}!` : "Erro ao salvar progresso.", true);
       this._voltar();
       return;
     }
     const s = Salvamento.ler(n);
-    if (!s) return this._aviso(`O slot ${n} está vazio`);
-    if (!(s.no in this.dados.cena.nos)) return this._aviso("Este save não combina com o roteiro atual");
+    if (!s) return this._aviso(`O Slot ${n} está vazio.`);
+    if (!(s.no in this.dados.cena.nos)) return this._aviso("Este save pertence a outra versão do roteiro.");
     this._restaurar(s);
+    this._aviso(`Jogo carregado do Slot ${n}!`, true);
   }
 
   _voltar() {
-    if (this.estado === Estado.SLOTS && this.origem === "pausa") this._montarMenuPausa();
-    else this._abrirMenu();
+    if (this.estado === Estado.SLOTS) {
+      if (this.origem === "pausa") this._montarMenuPausa();
+      else if (this.origem === "jogo") this._fecharModal();
+      else this._abrirMenu();
+    } else {
+      this._abrirMenu();
+    }
   }
 
-  _aviso(texto) {
-    this.avisos.push({ texto, resta: 3.5 });
+  _aviso(texto, positivo = false) {
+    this.avisos.push({ texto, resta: 3.2, positivo });
   }
 
-  // Foto do estado atual. Salvamos no comando que está ESPERANDO o jogador
-  // (indice - 1), então ao carregar ele é lido de novo e a cena continua igual.
+  // Salva exatamente o comando atual onde o jogador parou
   _snapshot() {
     const r = this.roteiro;
-    const bruto = this.estadoPausado === Estado.ESCOLHA ? (this.escolha.titulo ?? "Escolha") : (this.dialogo?.texto ?? "");
+    const origemEstado = this.estadoAnteriorModal || this.estado;
+    const bruto = origemEstado === Estado.ESCOLHA
+      ? (this.escolha?.titulo ?? "Decisão")
+      : (this.dialogo?.texto ?? "Em andamento");
+
     return {
       quando: new Date().toISOString(),
-      trecho: bruto.length > 70 ? `${bruto.slice(0, 67)}…` : bruto,
-      no: r.no,
-      indice: Math.max(0, r.indice - 1),
+      trecho: bruto.length > 65 ? `${bruto.slice(0, 62)}…` : bruto,
+      no: this.pontoSalvo.no,
+      indice: this.pontoSalvo.indice,
       variaveis: { ...r.variaveis },
+      reputacao: { ...r.reputacao },
+      inventario: JSON.parse(JSON.stringify(r.inventario)),
       fundoId: this.fundoId,
-      sprites: Object.fromEntries(Object.entries(this.sprites).map(([q, s]) => [q, { sprite: s.sprite, posicao: s.posicao }])),
+      sprites: Object.fromEntries(
+        Object.entries(this.sprites).map(([q, s]) => [q, { sprite: s.sprite, posicao: s.posicao }])
+      ),
       musica: this.som.idMusica,
       objetivos: [...this.objetivos],
+      historico: this.historico.slice(-30),
     };
   }
 
@@ -366,51 +625,57 @@ export class Jogo {
     r.no = s.no;
     r.indice = s.indice;
     r.variaveis = { ...s.variaveis };
+    r.reputacao = { ...(s.reputacao ?? { fabiana: 50, fabio: 50 }) };
+    r.inventario = JSON.parse(JSON.stringify(s.inventario ?? []));
     this.fundoId = s.fundoId;
-    this.objetivos = [...s.objetivos];
-    for (const [quem, sp] of Object.entries(s.sprites)) this.sprites[quem] = { ...sp, entrada: "fade", t: 0 };
-    this.som.tocarMusica(s.musica);
+    this.objetivos = [...(s.objetivos ?? [])];
+    this.historico = [...(s.historico ?? [])];
+    for (const [quem, sp] of Object.entries(s.sprites ?? {})) {
+      this.sprites[quem] = { ...sp, entrada: "fade", t: 0 };
+    }
+    if (s.musica) this.som.tocarMusica(s.musica);
     this._avancarRoteiro();
   }
 
-  // ---------- Executor de comandos ----------
+  // ---------- Executor de Comandos ----------
 
-  // Roda comandos até encontrar um que espera o jogador.
   _avancarRoteiro() {
     try {
       for (let i = 0; i < 2000; i++) {
+        const noAntes = this.roteiro.no;
+        const indiceAntes = this.roteiro.indice;
         const cmd = this.roteiro.proximo();
+
         if (!cmd) {
-          this._entrarFimAto({ titulo: "Fim do roteiro", proximo: null });
+          this._entrarFimAto({ titulo: "Fim do Ato I", proximo: null });
           return;
         }
-        if (this._executar(cmd)) return;   // true = precisa esperar
+        if (this._executar(cmd)) {
+          // Guarda a posição exata do comando que está aguardando o jogador
+          this.pontoSalvo = { no: noAntes, indice: indiceAntes };
+          return;
+        }
       }
-      throw new Error("Roteiro em loop infinito (verifique os comandos 'ir').");
+      throw new Error("Roteiro em loop infinito.");
     } catch (erro) {
       this._erro(erro);
     }
   }
 
-  // Executa UM comando. Devolve true se o jogo deve esperar o jogador.
   _executar(cmd) {
     const r = this.roteiro;
 
     switch (cmd.cmd) {
-      // ----- instantâneos -----
       case "fundo":
         this.fundoId = cmd.id;
-        this._log(`fundo: ${cmd.id}`);
         return false;
 
       case "musica":
         this.som.tocarMusica(cmd.id);
-        this._log(cmd.id ? `música: ${cmd.id}` : "música: parar");
         return false;
 
       case "sfx":
         this.som.tocarSfx(cmd.id);
-        this._log(`sfx: ${cmd.id}`);
         return false;
 
       case "mostrar":
@@ -420,39 +685,53 @@ export class Jogo {
           entrada: cmd.entrada ?? "fade",
           t: 0,
         };
-        this._log(`mostrar: ${cmd.personagem}`);
         return false;
 
       case "esconder":
         delete this.sprites[cmd.personagem];
-        this._log(`esconder: ${cmd.personagem}`);
         return false;
 
       case "somar":
         r.somar(cmd.var, cmd.valor);
-        this._log(`${cmd.var} ${cmd.valor >= 0 ? "+" : ""}${cmd.valor} → ${r.variaveis[cmd.var]}`);
         return false;
 
       case "definir":
         r.definir(cmd.var, cmd.valor);
-        this._log(`${cmd.var} = ${cmd.valor}`);
+        return false;
+
+      case "reputacao": {
+        const novoValor = r.alterarReputacao(cmd.personagem, cmd.valor);
+        const pers = this.dados.personagens[cmd.personagem];
+        const nomePers = pers?.nome || cmd.personagem;
+        const sinal = cmd.valor >= 0 ? `+${cmd.valor}` : `${cmd.valor}`;
+        this._aviso(`Reputação com ${nomePers}: ${sinal} (${novoValor}%)`, cmd.valor >= 0);
+        return false;
+      }
+
+      case "item_adicionar":
+        r.adicionarItem(cmd);
+        this._aviso(`Item obtido: ${cmd.nome}`, true);
+        return false;
+
+      case "item_remover":
+        if (r.removerItem(cmd.id, cmd.qtd ?? 1)) {
+          this._aviso(`Item usado: ${cmd.nome || cmd.id}`, false);
+        }
         return false;
 
       case "aviso":
-        this.avisos.push({ texto: cmd.texto, resta: 3.5 });
+        this._aviso(cmd.texto, cmd.positivo ?? false);
         return false;
 
       case "objetivo":
         this.objetivos.push(cmd.texto);
-        this.avisos.push({ texto: `Novo objetivo: ${cmd.texto}`, resta: 3.5 });
+        this._aviso(`Novo objetivo: ${cmd.texto}`, true);
         return false;
 
       case "ir":
         r.irPara(cmd.no);
-        this._log(`ir: ${cmd.no}`);
         return false;
 
-      // ----- esperam o jogador -----
       case "fala":
       case "pensamento":
       case "mensagem_celular":
@@ -482,25 +761,33 @@ export class Jogo {
     this.dialogo = { tipo, quem: cmd.quem ?? null, acao: cmd.acao ?? null, texto: cmd.texto, linhas: null };
     this.caracteres = 0;
     this.estado = Estado.DIALOGO;
+
+    const pers = this.dados.personagens[cmd.quem];
+    const nomeHist = tipo === "celular" ? "Celular (Grupo)"
+      : tipo === "pensamento" ? `${pers?.nome || "Você"} (pensando)`
+        : (pers?.nome || "Narrador");
+
+    this.historico.push({
+      quem: nomeHist,
+      cor: pers?.cor ?? CONFIG.COR.giz,
+      texto: cmd.texto,
+    });
   }
 
   _entrarFimAto(cmd) {
+    this.modoAuto = false;
+    this.modoPular = false;
     this.fimAto = { titulo: cmd.titulo, proximo: cmd.proximo };
     this.estado = Estado.FIM_ATO;
   }
 
-  _log(texto) {
-    this.eventos.push({ texto, resta: 4 });
-    if (this.eventos.length > 7) this.eventos.shift();
-  }
-
-  // ---------- Geometria dos botões (usada no clique E no desenho) ----------
+  // ---------- Geometria dos Botões de Escolha ----------
 
   _geometriaBotoes() {
     const { largura, altura, espaco } = CONFIG.BOTAO;
     const n = this.escolha.opcoes.length;
     const total = n * altura + (n - 1) * espaco;
-    const topo = Math.max(110, (CONFIG.CAIXA.y - total) / 2 + 30);
+    const topo = Math.max(95, (CONFIG.CAIXA.y - total) / 2 + 15);
     const x = (CONFIG.LARGURA - largura) / 2;
     return this.escolha.opcoes.map((_, i) => ({ x, y: topo + i * (altura + espaco), w: largura, h: altura }));
   }
@@ -514,6 +801,7 @@ export class Jogo {
   desenhar() {
     const { ctx } = this;
     ctx.clearRect(0, 0, CONFIG.LARGURA, CONFIG.ALTURA);
+
     if ([Estado.MENU, Estado.SLOTS, Estado.CREDITOS].includes(this.estado)) {
       desenharLousa(ctx);
     } else {
@@ -522,21 +810,73 @@ export class Jogo {
     }
 
     switch (this.estado) {
-      case Estado.CARREGANDO: this._desenharCarregando(); break;
-      case Estado.MENU: this._desenharMenuPrincipal(); break;
-      case Estado.SLOTS: this._desenharSlots(); break;
-      case Estado.CREDITOS: this._desenharCreditos(); break;
-      case Estado.PAUSA: this._desenharPausa(); break;
-      case Estado.DIALOGO: this._desenharDialogo(); break;
-      case Estado.ESCOLHA: this._desenharEscolha(); break;
-      case Estado.FIM_ATO: this._desenharFimAto(); break;
+      case Estado.CARREGANDO:
+        this._desenharCarregando();
+        break;
+      case Estado.MENU:
+        this._desenharMenuPrincipal();
+        break;
+      case Estado.SLOTS:
+        this._desenharSlots();
+        break;
+      case Estado.CREDITOS:
+        this._desenharCreditos();
+        break;
+      case Estado.PAUSA:
+        this._desenharPausa();
+        break;
+      case Estado.DIALOGO:
+        this._desenharDialogo();
+        this._desenharHudLimpo();
+        break;
+      case Estado.ESCOLHA:
+        this._desenharEscolha();
+        this._desenharHudLimpo();
+        break;
+      case Estado.HISTORICO:
+        this._desenharDialogo();
+        desenharModalHistorico(ctx, this.historico, this.scrollHistorico, (t, w, f) => this._quebrar(t, w, f));
+        break;
+      case Estado.REPUTACAO:
+        this._desenharDialogo();
+        desenharModalReputacao(ctx, this.roteiro.reputacao, this.dados.personagens);
+        break;
+      case Estado.INVENTARIO:
+        this._desenharDialogo();
+        desenharModalInventario(ctx, this.roteiro.inventario, this.itemInventarioSel, (t, w, f) => this._quebrar(t, w, f));
+        break;
+      case Estado.CONFIGURACOES:
+        this._desenharDialogo();
+        desenharModalConfiguracoes(ctx, this.velocidadeTexto);
+        break;
+      case Estado.FIM_ATO:
+        desenharFimAtoEstilizado(
+          ctx,
+          this.fimAto,
+          this.roteiro.variaveis,
+          this.roteiro.reputacao,
+          this.dados.personagens,
+          this.ultimoTempo / 1000
+        );
+        break;
       case Estado.ERRO:
         this._texto(this.mensagemErro, CONFIG.LARGURA / 2, CONFIG.ALTURA / 2, "center");
         break;
     }
 
     this._desenharAvisos();
-    this._desenharHud();
+  }
+
+  _desenharHudLimpo() {
+    // Barra de status discreta no topo (Risco CAI, Sobrevivência e Objetivo)
+    desenharStatusCompacto(this.ctx, this.roteiro.variaveis, this.objetivos);
+
+    // Barra inferior discreta de ações da Visual Novel
+    this.botoesBarra = desenharBarraInferior(this.ctx, this.entrada.mouse, {
+      auto: this.modoAuto,
+      pular: this.modoPular,
+      qtdItens: this.roteiro.inventario.length,
+    });
   }
 
   _desenharFundo() {
@@ -547,14 +887,13 @@ export class Jogo {
       ctx.drawImage(img, 0, 0, CONFIG.LARGURA, CONFIG.ALTURA);
       return;
     }
-    // Placeholder: cor derivada do ID, para trocas de cenário ficarem visíveis
     ctx.fillStyle = this.fundoId ? this._corDoId(this.fundoId, 35, 22) : CONFIG.COR.fundo;
     ctx.fillRect(0, 0, CONFIG.LARGURA, CONFIG.ALTURA);
     if (this.fundoId) {
-      ctx.font = CONFIG.FONTES.pequena;
-      ctx.fillStyle = "rgba(255,255,255,0.35)";
-      ctx.textAlign = "center";
-      ctx.fillText(`[fundo] ${this.fundoId}`, CONFIG.LARGURA / 2, 30);
+      ctx.font = CONFIG.FONTES.micro;
+      ctx.fillStyle = "rgba(255,255,255,0.28)";
+      ctx.textAlign = "right";
+      ctx.fillText(`Local: ${this.fundoId}`, CONFIG.LARGURA - 24, 34);
     }
   }
 
@@ -568,7 +907,6 @@ export class Jogo {
       const h = SP.altura * pos.escala;
       const w = img ? h * (img.width / img.height) : SP.largura * pos.escala;
 
-      // Animação de entrada
       const duracao = s.entrada === "deslizar_direita" ? 0.6 : 0.35;
       const p = Math.min(1, s.t / duracao);
       const suave = 1 - Math.pow(1 - p, 3);
@@ -594,8 +932,6 @@ export class Jogo {
         ctx.textAlign = "center";
         ctx.font = CONFIG.FONTES.nome;
         ctx.fillText(pers?.nome || quem, x + w / 2, y + h / 2);
-        ctx.font = CONFIG.FONTES.pequena;
-        ctx.fillText(s.sprite, x + w / 2, y + h / 2 + 28);
       }
       ctx.restore();
     }
@@ -644,9 +980,9 @@ export class Jogo {
 
   _desenharPausa() {
     const { ctx } = this;
-    if (this.estadoPausado === Estado.ESCOLHA) this._desenharEscolha();
+    if (this.estadoAnteriorModal === Estado.ESCOLHA) this._desenharEscolha();
     else this._desenharDialogo();
-    ctx.fillStyle = "rgba(0,0,0,0.68)";
+    ctx.fillStyle = "rgba(0,0,0,0.72)";
     ctx.fillRect(0, 0, CONFIG.LARGURA, CONFIG.ALTURA);
     desenharTitulo(ctx, "Pausa", CONFIG.LARGURA / 2, 190, "center");
     desenharMenu(this.ctx, this.menu);
@@ -660,6 +996,7 @@ export class Jogo {
   }
 
   _desenharDialogo() {
+    if (!this.dialogo) return;
     if (this.dialogo.tipo === "celular") this._desenharCelular();
     else this._desenharCaixa();
   }
@@ -672,38 +1009,40 @@ export class Jogo {
     const pensando = d.tipo === "pensamento";
     const fonte = pensando ? CONFIG.FONTES.pensamento : CONFIG.FONTES.texto;
 
+    this._retArredondado(c.x, c.y, c.largura, c.altura, 12);
     ctx.fillStyle = CONFIG.COR.caixa;
-    ctx.fillRect(c.x, c.y, c.largura, c.altura);
+    ctx.fill();
     ctx.strokeStyle = CONFIG.COR.borda;
-    ctx.lineWidth = 3;
-    ctx.strokeRect(c.x, c.y, c.largura, c.altura);
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
 
-    // Nome do personagem (+ ação entre parênteses)
     if (pers?.nome) {
       ctx.font = CONFIG.FONTES.nome;
       ctx.fillStyle = pers.cor;
       ctx.textAlign = "left";
-      ctx.fillText(pers.nome, c.x + 28, c.y + 42);
+      ctx.fillText(pers.nome, c.x + 28, c.y + 38);
       if (d.acao) {
         const w = ctx.measureText(pers.nome).width;
         ctx.font = CONFIG.FONTES.acao;
         ctx.fillStyle = CONFIG.COR.apagado;
-        ctx.fillText(`(${d.acao})`, c.x + 28 + w + 16, c.y + 42);
+        ctx.fillText(`(${d.acao})`, c.x + 28 + w + 14, c.y + 38);
       }
     }
 
     d.linhas ??= this._quebrar(d.texto, c.largura - 56, fonte);
     ctx.font = fonte;
     ctx.fillStyle = pensando ? CONFIG.COR.pensamento : CONFIG.COR.texto;
-    this._textoRevelado(d.linhas, c.x + 28, c.y + 84);
+    this._textoRevelado(d.linhas, c.x + 28, c.y + (pers?.nome ? 76 : 48));
 
-    if (this.caracteres >= d.texto.length) this._indicadorContinuar(c.x + c.largura - 44, c.y + c.altura - 20);
+    if (this.caracteres >= d.texto.length) {
+      this._indicadorContinuar(c.x + c.largura - 38, c.y + c.altura - 18);
+    }
   }
 
   _desenharCelular() {
     const { ctx } = this;
     const d = this.dialogo;
-    const x = 390, y = 110, w = 500, h = 300;
+    const x = 390, y = 95, w = 500, h = 300;
 
     this._retArredondado(x, y, w, h, 28);
     ctx.fillStyle = "#101820";
@@ -733,17 +1072,16 @@ export class Jogo {
     const { ctx } = this;
     const c = CONFIG.CAIXA;
 
-    // Última fala continua visível, escurecida por trás dos botões
     if (this.dialogo && this.dialogo.tipo !== "celular") this._desenharCaixa();
-    ctx.fillStyle = "rgba(0,0,0,0.55)";
+    ctx.fillStyle = "rgba(0,0,0,0.58)";
     ctx.fillRect(0, 0, CONFIG.LARGURA, CONFIG.ALTURA);
 
     const botoes = this._geometriaBotoes();
     if (this.escolha.titulo) {
       ctx.font = CONFIG.FONTES.nome;
-      ctx.fillStyle = CONFIG.COR.texto;
+      ctx.fillStyle = CONFIG.COR.giz;
       ctx.textAlign = "center";
-      ctx.fillText(this.escolha.titulo, CONFIG.LARGURA / 2, botoes[0].y - 24);
+      ctx.fillText(this.escolha.titulo, CONFIG.LARGURA / 2, botoes[0].y - 20);
     }
 
     botoes.forEach((b, i) => {
@@ -760,7 +1098,10 @@ export class Jogo {
       ctx.textAlign = "left";
       const linhas = this._quebrar(`${i + 1}. ${this.escolha.opcoes[i].texto}`, b.w - 60, CONFIG.FONTES.botao);
       let y = b.y + b.h / 2 + 8 - (linhas.length - 1) * 15;
-      for (const l of linhas) { ctx.fillText(l, b.x + 30, y); y += 30; }
+      for (const l of linhas) {
+        ctx.fillText(l, b.x + 30, y);
+        y += 30;
+      }
     });
 
     ctx.font = CONFIG.FONTES.pequena;
@@ -769,98 +1110,23 @@ export class Jogo {
     ctx.fillText("Clique, use ↑ ↓ + Enter, ou digite o número", CONFIG.LARGURA / 2, c.y - 12);
   }
 
-  _desenharFimAto() {
-    desenharFimAtoEstilizado(this.ctx, this.fimAto, this.roteiro.variaveis, this.ultimoTempo / 1000);
-  }
-
-  // Avisos (centro-topo)
   _desenharAvisos() {
     const { ctx } = this;
     this.avisos.slice(-2).forEach((a, i) => {
       ctx.font = CONFIG.FONTES.pequena;
       const w = ctx.measureText(a.texto).width + 48;
       const x = (CONFIG.LARGURA - w) / 2;
-      const y = 56 + i * 52;
+      const y = 66 + i * 48;
       ctx.globalAlpha = Math.min(1, a.resta / 0.5);
-      this._retArredondado(x, y, w, 40, 10);
-      ctx.fillStyle = CONFIG.COR.aviso;
+      this._retArredondado(x, y, w, 38, 10);
+      ctx.fillStyle = a.positivo ? CONFIG.COR.avisoVerde : CONFIG.COR.aviso;
       ctx.fill();
       ctx.fillStyle = "#fff";
       ctx.textAlign = "center";
-      ctx.fillText(a.texto, CONFIG.LARGURA / 2, y + 26);
+      ctx.fillText(a.texto, CONFIG.LARGURA / 2, y + 25);
       ctx.globalAlpha = 1;
     });
   }
-
-  // Ficha do aluno (painel lateral - esquerda normalmente, direita na escolha para não sobrepor)
-  _desenharHud() {
-    if (!this.roteiro) return;
-    if (![Estado.DIALOGO, Estado.ESCOLHA, Estado.PAUSA].includes(this.estado)) return;
-    const { ctx } = this;
-    const rotulos = this.dados.cena.rotulos ?? {};
-
-    // Se estiver em estado de escolha, move para o canto superior direito para não encobrir as opções
-    const ehEscolha = this.estado === Estado.ESCOLHA;
-    const x = ehEscolha ? CONFIG.LARGURA - 308 : 12;
-    const y = 12;
-    const w = 296;
-
-    const linhas = Object.entries(this.roteiro.variaveis).map(([k, v]) => {
-      const r = rotulos[k];
-      if (!r) return { nome: k, valor: String(v) };
-      if (typeof v === "boolean") return { nome: r.nome, valor: v ? r.verdadeiro : r.falso };
-      const barra = r.unidade === "%" ? Math.max(0, Math.min(100, v)) / 100 : null;
-      return { nome: r.nome, valor: `${v}${r.unidade ?? ""}`, barra, cor: r.cor ?? CONFIG.COR.verde };
-    });
-    const objetivos = this.objetivos.flatMap((o) => this._quebrar(o, w - 36, CONFIG.FONTES.pequena));
-
-    let altura = 44 + linhas.reduce((soma, l) => soma + (l.barra != null ? 40 : 26), 0);
-    if (objetivos.length) altura += 30 + objetivos.length * 22;
-
-    this._retArredondado(x, y, w, altura, 10);
-    ctx.fillStyle = "rgba(8, 20, 14, 0.88)";
-    ctx.fill();
-    ctx.strokeStyle = "rgba(47, 158, 65, 0.35)";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.fillStyle = CONFIG.COR.verde;
-    ctx.fillRect(x, y + 10, 6, altura - 20);
-
-    ctx.textAlign = "left";
-    ctx.font = CONFIG.FONTES.titulo3;
-    ctx.fillStyle = CONFIG.COR.giz;
-    ctx.fillText("Ficha do aluno", x + 22, y + 32);
-
-    let py = y + 60;
-    ctx.font = CONFIG.FONTES.pequena;
-    for (const l of linhas) {
-      ctx.textAlign = "left";
-      ctx.fillStyle = CONFIG.COR.apagado;
-      ctx.fillText(l.nome, x + 22, py);
-      ctx.textAlign = "right";
-      ctx.fillStyle = CONFIG.COR.giz;
-      ctx.fillText(l.valor, x + w - 14, py);
-      if (l.barra != null) {
-        ctx.fillStyle = "rgba(255,255,255,0.12)";
-        ctx.fillRect(x + 22, py + 8, w - 36, 6);
-        ctx.fillStyle = l.cor;
-        ctx.fillRect(x + 22, py + 8, (w - 36) * l.barra, 6);
-        py += 40;
-      } else {
-        py += 26;
-      }
-    }
-
-    ctx.textAlign = "left";
-    if (objetivos.length) {
-      ctx.fillStyle = CONFIG.COR.apagado;
-      ctx.fillText("Objetivo", x + 22, py + 4);
-      ctx.fillStyle = CONFIG.COR.giz;
-      objetivos.forEach((l, i) => ctx.fillText(l, x + 22, py + 28 + i * 22));
-    }
-  }
-
-  // ---------- Utilitários de desenho ----------
 
   _texto(str, x, y, alinhamento = "left") {
     this.ctx.font = CONFIG.FONTES.texto;
@@ -869,7 +1135,6 @@ export class Jogo {
     this.ctx.fillText(str, x, y);
   }
 
-  // Canvas não quebra linha sozinho: medimos palavra por palavra.
   _quebrar(str, larguraMax, fonte) {
     const { ctx } = this;
     ctx.font = fonte;
@@ -888,7 +1153,6 @@ export class Jogo {
     return linhas;
   }
 
-  // Máquina de escrever sobre linhas JÁ quebradas (as palavras não "pulam" de linha)
   _textoRevelado(linhas, x, y) {
     let restante = Math.floor(this.caracteres);
     this.ctx.textAlign = "left";
@@ -919,7 +1183,6 @@ export class Jogo {
     ctx.closePath();
   }
 
-  // Cor estável derivada do texto (placeholders)
   _corDoId(id, sat, luz) {
     let h = 0;
     for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) % 360;

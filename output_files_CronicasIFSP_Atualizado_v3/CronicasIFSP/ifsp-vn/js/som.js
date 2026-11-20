@@ -1,5 +1,4 @@
-// SOM: uma música de fundo por vez (em loop) + efeitos sonoros sobrepostos.
-// Se o arquivo não existe (null), simplesmente não toca nada.
+// SOM: gerencia músicas de fundo e efeitos sonoros.
 
 import { CONFIG } from "./config.js";
 
@@ -9,6 +8,7 @@ export class Som {
     this.sfx = midia.sfx;
     this.musicaAtual = null;
     this.idMusica = null;
+    this.sfxAtual = null; // Guarda a referência do último efeito sonoro tocado
   }
 
   tocarMusica(id) {
@@ -24,6 +24,12 @@ export class Som {
     this.musicaAtual = audio;
   }
 
+  atualizarVolume() {
+    if (this.musicaAtual) {
+      this.musicaAtual.volume = CONFIG.VOLUME.musica;
+    }
+  }
+
   pararMusica() {
     if (this.musicaAtual) {
       this.musicaAtual.pause();
@@ -36,14 +42,27 @@ export class Som {
   tocarSfx(id) {
     const base = this.sfx[id];
     if (!base) return;
-    const copia = base.cloneNode(true);   // permite sobrepor o mesmo efeito
+
+    // Se já houver um efeito sonoro tocando e você quiser interrompê-lo ao iniciar outro:
+    if (this.sfxAtual) {
+      this.sfxAtual.pause();
+      this.sfxAtual.currentTime = 0;
+    }
+
+    const copia = base.cloneNode(true);
     copia.volume = CONFIG.VOLUME.sfx;
+
+    // Salva a referência e limpa quando terminar
+    this.sfxAtual = copia;
+    copia.onended = () => {
+      if (this.sfxAtual === copia) this.sfxAtual = null;
+    };
+
     this._tocar(copia);
   }
 
-  // Navegadores bloqueiam áudio antes do 1º clique; ignoramos a recusa.
   _tocar(audio) {
     const promessa = audio.play();
-    if (promessa) promessa.catch(() => {});
+    if (promessa) promessa.catch(() => { });
   }
 }
