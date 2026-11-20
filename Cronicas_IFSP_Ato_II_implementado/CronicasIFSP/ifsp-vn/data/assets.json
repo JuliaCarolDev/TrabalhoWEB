@@ -1,0 +1,23 @@
+{
+  "_comentario": "Manifesto: liga o ID usado no roteiro ao caminho real do arquivo. Para trocar um arquivo, mude só aqui.",
+  "fundos": {
+    "bg_corredor_manha": "",
+    "bg_biblioteca_manha": "",
+    "bg_sala_de_aula": "",
+    "bg_corredor_intervalo": "",
+    "bg_biblioteca": "",
+    "bg_diretoria": "",
+    "bg_patio_artes": ""
+  },
+  "sprites": {
+    "fabiana_equilibrando_pastas": "",
+    "fabio_sorriso_calmo": "",
+    "fabio_observando": "",
+    "analucia_sorriso_provocador": "",
+    "gabriel_sorriso_zoando": "",
+    "fabiana_caos_pastas": "",
+    "paula_energetica": "",
+    "carol_sorriso_doce": "",
+    "marcos_dramatico": ""
+  }
+}

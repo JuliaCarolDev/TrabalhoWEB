@@ -1,0 +1,873 @@
+{
+  "id": "ato1_cena1",
+  "titulo": "Ato I — O Despertar no Bloco Acadêmico",
+  "inicio": "inicio",
+  "variaveis": {
+    "riscoCAI": 0,
+    "sobrevivencia": 0,
+    "celularConfiscado": false,
+    "interacaoRapida": false,
+    "estresse": 0,
+    "carisma": 0,
+    "energiaCafeinada": false,
+    "piadaBiblioteca": false,
+    "apoioCultural": false
+  },
+  "reputacaoInicial": {
+    "fabiana": 50,
+    "fabio": 50,
+    "ana_lucia": 50,
+    "gabriel": 50,
+    "paula": 50,
+    "carol": 50,
+    "marcos": 50
+  },
+  "inventarioInicial": [
+    {
+      "id": "carteirinha_ifsp",
+      "nome": "Crachá Estudantil IFSP",
+      "icone": "🪪",
+      "qtd": 1,
+      "descricao": "Identificação oficial do aluno. Essencial para entrar no campus e acessar a biblioteca."
+    },
+    {
+      "id": "smartphone",
+      "nome": "Smartphone",
+      "icone": "📱",
+      "qtd": 1,
+      "descricao": "Seu celular pessoal com o grupo da turma no WhatsApp. Mantenha longe da vista da CAI fora do intervalo!"
+    },
+    {
+      "id": "caderno_anotacoes",
+      "nome": "Caderno Universitário",
+      "icone": "📓",
+      "qtd": 1,
+      "descricao": "Caderno de 10 matérias já com algumas folhas amassadas na mochila."
+    }
+  ],
+  "nos": {
+    "inicio": [
+      {
+        "cmd": "fundo",
+        "id": "bg_corredor_manha"
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "Segunda-feira. Sete e dez da manhã. No Instituto Federal de São Paulo, o tempo funciona em uma dimensão própria: o fim de semana dura cinco minutos, e a aula dupla de segunda parece uma era geológica."
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "Você ajusta a alça da mochila enquanto caminha pelo corredor principal. O aroma característico de café recém-passado vindo da sala dos professores mistura-se ao som de zíperes sendo fechados na pressa e discussões desesperadas sobre uma lista de exercícios que ninguém lembrava que era para hoje."
+      },
+      {
+        "cmd": "mostrar",
+        "personagem": "fabiana",
+        "sprite": "fabiana_equilibrando_pastas",
+        "posicao": "centro"
+      },
+      {
+        "cmd": "fala",
+        "quem": "fabiana",
+        "texto": "Com licença, com licença! Cuidado com Drummond! Se esse livro cair no chão antes das sete e meia, a segunda-feira perde todo o lirismo!"
+      },
+      {
+        "cmd": "esconder",
+        "personagem": "fabiana"
+      },
+      {
+        "cmd": "pensamento",
+        "quem": "protagonista",
+        "texto": "A Profª Fabiana já está no ritmo máximo antes mesmo do primeiro sinal. Se o café dela acabar antes do intervalo, o bloco inteiro corre perigo."
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "O sinal ecoa pelos corredores como um decreto oficial. Instantaneamente, o fluxo de alunos acelera. No entanto, bem no meio do trajeto até a sua sala, seu bolso vibra."
+      },
+      {
+        "cmd": "pensamento",
+        "quem": "protagonista",
+        "texto": "O grupo da turma no WhatsApp. Só mandam mensagem nessa hora quando algum professor faltou, mudou de sala ou quando alguém descobriu que a entrega do trabalho foi adiantada."
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "Você olha rapidamente para os lados. O corredor está esvaziando, mas o portão que dá acesso ao corredor da CAI (Coordenadoria de Apoio ao Ensino) está a poucos metros dali. O que você faz?"
+      },
+      {
+        "cmd": "escolha",
+        "id": "decisao_corredor",
+        "titulo": "O Dilema do Corredor",
+        "opcoes": [
+          {
+            "texto": "Pegar o celular rapidamente para ler a mensagem.",
+            "efeitos": [
+              {
+                "cmd": "somar",
+                "var": "riscoCAI",
+                "valor": 15
+              },
+              {
+                "cmd": "reputacao",
+                "personagem": "fabio",
+                "valor": -15
+              }
+            ],
+            "ir": "ramo_a"
+          },
+          {
+            "texto": "Guardar o celular no bolso e correr direto para a sala.",
+            "efeitos": [
+              {
+                "cmd": "somar",
+                "var": "sobrevivencia",
+                "valor": 5
+              },
+              {
+                "cmd": "reputacao",
+                "personagem": "fabiana",
+                "valor": 10
+              },
+              {
+                "cmd": "reputacao",
+                "personagem": "fabio",
+                "valor": 5
+              }
+            ],
+            "ir": "ramo_b"
+          },
+          {
+            "texto": "Entrar rapidamente na Biblioteca para checar o celular longe do corredor.",
+            "efeitos": [
+              {
+                "cmd": "somar",
+                "var": "riscoCAI",
+                "valor": 5
+              },
+              {
+                "cmd": "definir",
+                "var": "interacaoRapida",
+                "valor": true
+              }
+            ],
+            "ir": "ramo_c"
+          }
+        ]
+      }
+    ],
+    "ramo_a": [
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "“É só uma olhadinha de três segundos”, você pensa. A clássica frase que precede noventa por cento das tragédias estudantis no IFSP."
+      },
+      {
+        "cmd": "mensagem_celular",
+        "texto": "GENTE, ALGUÉM TROUXE CARTOLINA?! A PROFª PAULA DISSE QUE..."
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "Você nem termina de ler a frase. Uma sombra perfeitamente alinhada projeta-se sobre a tela do seu aparelho, bloqueando o reflexo da luz do corredor. O burburinho ao redor parece silenciar."
+      },
+      {
+        "cmd": "mostrar",
+        "personagem": "fabio",
+        "sprite": "fabio_sorriso_calmo",
+        "posicao": "direita",
+        "entrada": "deslizar_direita"
+      },
+      {
+        "cmd": "fala",
+        "quem": "fabio",
+        "texto": "Bom dia! Que manhã agradável, não é? Sol brilhando, semana começando, todo mundo cheio de disposição para aprender..."
+      },
+      {
+        "cmd": "fala",
+        "quem": "protagonista",
+        "texto": "B-bom dia, Fábio..."
+      },
+      {
+        "cmd": "fala",
+        "quem": "fabio",
+        "acao": "mantendo o tom gentil, mas apontando suavemente com o queixo para a sua mão",
+        "texto": "Pois é. E justamente por ser um momento tão propício aos estudos, a gente sabe que esse aparelhinho aí fora da sala de aula, depois do sinal, acaba atrapalhando o foco. Me passa ele aqui rapidinho, por favor? No final do turno você passa lá na CAI para a gente conversar e eu te devolvo."
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "Não há gritos. Não há escândalo. É exatamente a calma cirúrgica do Fábio que torna a CAI uma lenda urbana entre os calouros e um trauma respeitado pelos veteranos."
+      },
+      {
+        "cmd": "definir",
+        "var": "celularConfiscado",
+        "valor": true
+      },
+      {
+        "cmd": "item_remover",
+        "id": "smartphone",
+        "nome": "Smartphone"
+      },
+      {
+        "cmd": "item_adicionar",
+        "id": "comprovante_cai",
+        "nome": "Protocolo de Retenção CAI",
+        "icone": "📄",
+        "descricao": "Comprovante assinado pelo Fábio para retirar seu celular na CAI após às 12h15."
+      },
+      {
+        "cmd": "objetivo",
+        "texto": "Retirar celular na CAI às 12h15"
+      },
+      {
+        "cmd": "fala",
+        "quem": "fabio",
+        "texto": "Boa aula! E pode ir tranquilo, que a sala já vai fechar."
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "Você entrega o aparelho com o coração apertado e segue para a sala de aula com a sensação de que a semana mal começou e você já está no modo difícil."
+      },
+      {
+        "cmd": "esconder",
+        "personagem": "fabio"
+      },
+      {
+        "cmd": "ir",
+        "no": "encerramento"
+      }
+    ],
+    "ramo_b": [
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "O instinto de sobrevivência fala mais alto. Você ignora a vibração no bolso, aperta o passo e vira no corredor da sua sala justamente no instante em que a porta da CAI se abre ao fundo."
+      },
+      {
+        "cmd": "mostrar",
+        "personagem": "fabio",
+        "sprite": "fabio_observando",
+        "posicao": "fundo"
+      },
+      {
+        "cmd": "fala",
+        "quem": "fabio",
+        "acao": "acenando de longe com um sorriso simpático",
+        "texto": "Bom dia! Ótima semana de estudos!"
+      },
+      {
+        "cmd": "fala",
+        "quem": "protagonista",
+        "texto": "Bom dia, Fábio! Igualmente!"
+      },
+      {
+        "cmd": "esconder",
+        "personagem": "fabio"
+      },
+      {
+        "cmd": "pensamento",
+        "quem": "protagonista",
+        "texto": "Ufa. Hoje não. Meu celular continua seguro no bolso e minha ficha segue intacta."
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "Você entra na sala exatamente quando a Profª Fabiana está apoiando seus livros sobre a mesa, pronta para começar o dia com muita energia."
+      },
+      {
+        "cmd": "aviso",
+        "texto": "Celular seguro  |  Sobrevivência Acadêmica +5%",
+        "positivo": true
+      },
+      {
+        "cmd": "ir",
+        "no": "encerramento"
+      }
+    ],
+    "ramo_c": [
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "Você dá um passo lateral rápido e desliza para dentro da Biblioteca antes que qualquer servidor da CAI olhe na direção do corredor."
+      },
+      {
+        "cmd": "fundo",
+        "id": "bg_biblioteca_manha"
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "O ambiente é fresco e silencioso — exceto pela sala de estudo número 2, onde três alunos gesticulam desesperadamente em câmera lenta atrás do vidro enquanto tentam terminar um cartaz de Biologia."
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "Você checa o celular discretamente atrás de uma estante de Literatura Brasileira. Era só um meme sobre o café da cantina. Você guarda o aparelho, respira aliviado e sai em direção à sala de aula a tempo da chamada."
+      },
+      {
+        "cmd": "aviso",
+        "texto": "Celular seguro  |  Risco CAI +5%",
+        "positivo": false
+      },
+      {
+        "cmd": "ir",
+        "no": "encerramento"
+      }
+    ],
+    "encerramento": [
+      {
+        "cmd": "fundo",
+        "id": "bg_sala_de_aula"
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "Você se senta na sua carteira e abre o caderno. Pela janela, o campus inteiro já está a todo vapor. Entre teorias evolutivas, poesias espalhadas, ensaios teatrais, biscoitos na diretoria e a vigilância implacável da CAI, a sua semana no IFSP começou oficialmente."
+      },
+      {
+        "cmd": "fim_ato",
+        "titulo": "Fim do Ato I",
+        "proximo": "Ato II — O Turno da Manhã e o Caos Acadêmico",
+        "proximoNo": "ato2_inicio",
+        "proximoNumero": "II",
+        "proximoTitulo": "O Turno da Manhã e o Caos Acadêmico"
+      }
+    ],
+    "ato2_inicio": [
+      {
+        "cmd": "fundo",
+        "id": "bg_sala_de_aula"
+      },
+      {
+        "cmd": "aviso",
+        "texto": "SEGUNDA-FEIRA • 08h05",
+        "positivo": true
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "A primeira aula mal começou e a Profª Ana Lúcia já transformou a chamada em um tribunal existencial. Ela caminha entre as fileiras com o livro de Filosofia fechado nas mãos."
+      },
+      {
+        "cmd": "mostrar",
+        "personagem": "ana_lucia",
+        "sprite": "analucia_sorriso_provocador",
+        "posicao": "centro"
+      },
+      {
+        "cmd": "fala",
+        "quem": "ana_lucia",
+        "texto": "Vejam bem: vocês dizem “presente” na chamada, mas será que a mente de vocês realmente está presente nesta sala, ou vocês são apenas corpos vazios aguardando o sinal do intervalo? Pensem nisso enquanto copiam o esquema da lousa."
+      },
+      {
+        "cmd": "pensamento",
+        "quem": "protagonista",
+        "texto": "Segunda-feira às oito da manhã e eu já estou questionando a realidade."
+      },
+      {
+        "cmd": "esconder",
+        "personagem": "ana_lucia"
+      },
+      {
+        "cmd": "aviso",
+        "texto": "SINAL • BEEP-BEEP! Troca de aula.",
+        "positivo": true
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "Antes que alguém consiga formular uma resposta existencial, a porta da sala se abre com um estrondo alegre. Entra um homem alto, de cabelos longos e barba cheia, segurando um apagador e um livro grosso de História Geral."
+      },
+      {
+        "cmd": "mostrar",
+        "personagem": "gabriel",
+        "sprite": "gabriel_sorriso_zoando",
+        "posicao": "direita",
+        "entrada": "deslizar_direita"
+      },
+      {
+        "cmd": "fala",
+        "quem": "gabriel",
+        "texto": "A paz esteja com vocês, meus discípulos! Podem guardar o desespero existencial da Ana Lúcia — hoje eu não vou multiplicar pães nem notas, mas vou explicar como a Revolução Francesa resolveu problemas muito parecidos com a fila da cantina!"
+      },
+      {
+        "cmd": "fala",
+        "quem": "turma",
+        "texto": "Bom dia, Jesus!"
+      },
+      {
+        "cmd": "fala",
+        "quem": "gabriel",
+        "acao": "rindo enquanto apoia o cotovelo na mesa",
+        "texto": "Olha o respeito com o patrimônio histórico do campus! E aí, quem já tá com cara de quem foi derrotado em Waterloo antes mesmo das nove da manhã?"
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "Ele aponta diretamente para você."
+      },
+      {
+        "cmd": "fala",
+        "quem": "gabriel",
+        "texto": "Você aí! Tá com uma cara de quem sobreviveu por pouco hoje cedo. Me diz: na História, o que faz alguém escapar de uma emboscada?"
+      },
+      {
+        "cmd": "escolha",
+        "id": "decisao_gabriel",
+        "titulo": "A resposta ao Prof. Gabriel",
+        "opcoes": [
+          {
+            "texto": "“Estratégia e sangue frio, professor!”",
+            "efeitos": [
+              {
+                "cmd": "reputacao",
+                "personagem": "gabriel",
+                "valor": 10
+              },
+              {
+                "cmd": "somar",
+                "var": "sobrevivencia",
+                "valor": 5
+              }
+            ],
+            "ir": "gabriel_a"
+          },
+          {
+            "texto": "“Correr para a biblioteca e fingir que nada aconteceu!”",
+            "efeitos": [
+              {
+                "cmd": "reputacao",
+                "personagem": "gabriel",
+                "valor": 15
+              },
+              {
+                "cmd": "definir",
+                "var": "piadaBiblioteca",
+                "valor": true
+              }
+            ],
+            "ir": "gabriel_b"
+          },
+          {
+            "texto": "“Depende: o Fábio da CAI conta como império absoluto?”",
+            "efeitos": [
+              {
+                "cmd": "reputacao",
+                "personagem": "gabriel",
+                "valor": 20
+              },
+              {
+                "cmd": "somar",
+                "var": "riscoCAI",
+                "valor": 5
+              }
+            ],
+            "ir": "gabriel_c"
+          }
+        ]
+      }
+    ],
+    "gabriel_a": [
+      {
+        "cmd": "fala",
+        "quem": "protagonista",
+        "texto": "Estratégia e sangue frio, professor!"
+      },
+      {
+        "cmd": "fala",
+        "quem": "gabriel",
+        "texto": "Muito bem! Napoleão teria gostado dessa resposta. Às vezes, sobreviver é saber a hora de avançar — e a hora de não mexer com a CAI."
+      },
+      {
+        "cmd": "ir",
+        "no": "aula_fabiana"
+      }
+    ],
+    "gabriel_b": [
+      {
+        "cmd": "fala",
+        "quem": "protagonista",
+        "texto": "Correr para a biblioteca e fingir que nada aconteceu!"
+      },
+      {
+        "cmd": "fala",
+        "quem": "gabriel",
+        "texto": "Uma retirada estratégica! A biblioteca é território neutro. Vou guardar essa para a próxima aula — talvez vire questão de prova."
+      },
+      {
+        "cmd": "aviso",
+        "texto": "Piada recorrente desbloqueada: retirada estratégica para a biblioteca.",
+        "positivo": true
+      },
+      {
+        "cmd": "ir",
+        "no": "aula_fabiana"
+      }
+    ],
+    "gabriel_c": [
+      {
+        "cmd": "fala",
+        "quem": "protagonista",
+        "texto": "Depende: o Fábio da CAI conta como império absoluto?"
+      },
+      {
+        "cmd": "fala",
+        "quem": "gabriel",
+        "acao": "segurando a gargalhada",
+        "texto": "Cuidado com a inquisição do corredor, hein! O Fábio tem ouvidos em todos os blocos. Mas gostei da análise política — ponto de participação moral garantido!"
+      },
+      {
+        "cmd": "ir",
+        "no": "aula_fabiana"
+      }
+    ],
+    "aula_fabiana": [
+      {
+        "cmd": "esconder",
+        "personagem": "gabriel"
+      },
+      {
+        "cmd": "aviso",
+        "texto": "09h15 • Próxima aula",
+        "positivo": true
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "A aula de História passa voando entre piadas sobre reis absolutistas e memes da turma. Na troca seguinte, a porta abre de novo — desta vez sem espaço para respirar."
+      },
+      {
+        "cmd": "mostrar",
+        "personagem": "fabiana",
+        "sprite": "fabiana_caos_pastas",
+        "posicao": "centro"
+      },
+      {
+        "cmd": "fala",
+        "quem": "fabiana",
+        "texto": "Bom dia, meus poetas! Não olhem para a minha mesa, isso aqui não é bagunça, é um ecossistema literário em equilíbrio instável! Ah, e antes que perguntem: o café acabou há dez minutos, então o humor da literatura hoje está puramente realista!"
+      },
+      {
+        "cmd": "esconder",
+        "personagem": "fabiana"
+      },
+      {
+        "cmd": "mostrar",
+        "personagem": "paula",
+        "sprite": "paula_energetica",
+        "posicao": "direita",
+        "entrada": "deslizar_direita"
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "Logo atrás dela no corredor, a Profª Paula passa rapidamente segurando um pacote de provas antigas e dá uma batidinha no vidro da porta."
+      },
+      {
+        "cmd": "fala",
+        "quem": "paula",
+        "texto": "Bom dia, turma! Lembrem-se: Darwin não perdoa quem deixa para estudar genética na véspera do simulado! O vestibular está chegando e a seleção natural já começou!"
+      },
+      {
+        "cmd": "esconder",
+        "personagem": "paula"
+      },
+      {
+        "cmd": "aviso",
+        "texto": "SINAL DO INTERVALO • TRIIIIIM!",
+        "positivo": true
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "O som mais esperado da manhã finalmente ecoa. Vinte minutos de liberdade absoluta no campus antes das últimas aulas."
+      },
+      {
+        "cmd": "fundo",
+        "id": "bg_corredor_intervalo"
+      },
+      {
+        "cmd": "musica",
+        "id": "bgm_intervalo_livre"
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "O corredor explode em movimento. Alunos correm em direção ao pátio, grupos se formam perto dos murais e o aroma de salgado e café toma conta do ar. Você tem tempo suficiente para escolher onde passar o intervalo — e cada lugar oferece vantagens diferentes para a sua semana."
+      },
+      {
+        "cmd": "escolha",
+        "id": "decisao_intervalo",
+        "titulo": "Como você vai passar o intervalo? (20 minutos)",
+        "opcoes": [
+          {
+            "texto": "Ir para a Biblioteca — estudar e observar o caos silencioso.",
+            "efeitos": [],
+            "ir": "intervalo_biblioteca"
+          },
+          {
+            "texto": "Visitar a Sala da Diretoria — conversar com a Diretora Carol.",
+            "efeitos": [],
+            "ir": "intervalo_diretoria"
+          },
+          {
+            "texto": "Ir ao Pátio Cultural — ajudar o Prof. Marcos nos preparativos de Artes.",
+            "efeitos": [],
+            "ir": "intervalo_patio"
+          },
+          {
+            "texto": "Ficar no Corredor — café e resenha com Gabriel e Fabiana.",
+            "efeitos": [],
+            "ir": "intervalo_cafe"
+          }
+        ]
+      }
+    ],
+    "intervalo_biblioteca": [
+      {
+        "cmd": "fundo",
+        "id": "bg_biblioteca"
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "Você entra na biblioteca buscando paz, mas logo percebe que a verdadeira ação acontece dentro das salas de estudo de vidro. Na sala ao lado, dois colegas discutem em sussurros dramáticos enquanto apontam para um livro aberto de Biologia."
+      },
+      {
+        "cmd": "fala",
+        "quem": "aluno_a",
+        "texto": "Se a Profª Paula perguntar de segunda lei de Mendel hoje, eu vou alegar extinção!"
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "Você pega um livro na estante, revisa os tópicos principais e ainda ganha uma folha de resumo emprestada de um veterano."
+      },
+      {
+        "cmd": "somar",
+        "var": "sobrevivencia",
+        "valor": 20
+      },
+      {
+        "cmd": "item_adicionar",
+        "id": "resumo_genetica_literatura",
+        "nome": "Resumo de Genética & Literatura",
+        "icone": "📚",
+        "descricao": "Uma folha de resumo emprestada por um veterano, com tópicos de Genética e Literatura."
+      },
+      {
+        "cmd": "aviso",
+        "texto": "Sobrevivência Acadêmica +20%",
+        "positivo": true
+      },
+      {
+        "cmd": "ir",
+        "no": "encerramento_ato2"
+      }
+    ],
+    "intervalo_diretoria": [
+      {
+        "cmd": "fundo",
+        "id": "bg_diretoria"
+      },
+      {
+        "cmd": "mostrar",
+        "personagem": "carol",
+        "sprite": "carol_sorriso_doce",
+        "posicao": "centro"
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "Você bate na porta da diretoria. Em vez de um ambiente frio e burocrático, você é recebido por um sorriso caloroso. A Diretora Carol está segurando o celular na vertical, ensaiando uma fala animada."
+      },
+      {
+        "cmd": "fala",
+        "quem": "carol",
+        "texto": "Oi! Entra, entra! Que bom te ver por aqui! Eu estava gravando uns stories mostrando o mural novo dos estudantes para o Instagram do campus. Quer aparecer rapidinho dando um “oi” no fundo? Ah, e antes que eu esqueça: pega um biscoito ali no pote, acabei de repor!"
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "Você aceita o biscoito e bate um papo leve com ela sobre as atividades da semana. Todo o peso da manhã desaparece instantaneamente."
+      },
+      {
+        "cmd": "esconder",
+        "personagem": "carol"
+      },
+      {
+        "cmd": "somar",
+        "var": "estresse",
+        "valor": -15
+      },
+      {
+        "cmd": "reputacao",
+        "personagem": "carol",
+        "valor": 15
+      },
+      {
+        "cmd": "item_adicionar",
+        "id": "biscoito_diretoria",
+        "nome": "Biscoito Amanteigado da Diretoria",
+        "icone": "🍪",
+        "descricao": "Um biscoito da Diretora Carol. Pode recuperar a moral antes de enfrentar a CAI."
+      },
+      {
+        "cmd": "aviso",
+        "texto": "Estresse -15% • Biscoito adicionado ao inventário.",
+        "positivo": true
+      },
+      {
+        "cmd": "ir",
+        "no": "encerramento_ato2"
+      }
+    ],
+    "intervalo_patio": [
+      {
+        "cmd": "fundo",
+        "id": "bg_patio_artes"
+      },
+      {
+        "cmd": "mostrar",
+        "personagem": "marcos",
+        "sprite": "marcos_dramatico",
+        "posicao": "centro"
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "No pátio aberto, o Professor Marcos está ajustando um painel pintado à mão enquanto gesticula como se estivesse dirigindo uma ópera italiana."
+      },
+      {
+        "cmd": "fala",
+        "quem": "marcos",
+        "texto": "Ah, você chegou na hora exata! Olhe para esse contraste de azul e dourado! Falta apenas um toque de alma! Segure este pincel por um minuto — a arte precisa de mãos corajosas!"
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "Você ajuda a segurar a estrutura enquanto ele finaliza os traços e declama um trecho teatral sobre a importância da expressão artística no ensino técnico."
+      },
+      {
+        "cmd": "esconder",
+        "personagem": "marcos"
+      },
+      {
+        "cmd": "somar",
+        "var": "carisma",
+        "valor": 15
+      },
+      {
+        "cmd": "reputacao",
+        "personagem": "marcos",
+        "valor": 15
+      },
+      {
+        "cmd": "item_adicionar",
+        "id": "ingresso_mostra_cultural",
+        "nome": "Ingresso VIP da Mostra Cultural",
+        "icone": "🎟️",
+        "descricao": "Um ingresso especial recebido por ajudar nos preparativos da Mostra Cultural."
+      },
+      {
+        "cmd": "aviso",
+        "texto": "Carisma +15 • Ingresso VIP adicionado.",
+        "positivo": true
+      },
+      {
+        "cmd": "ir",
+        "no": "encerramento_ato2"
+      }
+    ],
+    "intervalo_cafe": [
+      {
+        "cmd": "fundo",
+        "id": "bg_corredor_intervalo"
+      },
+      {
+        "cmd": "mostrar",
+        "personagem": "gabriel",
+        "sprite": "gabriel_sorriso_zoando",
+        "posicao": "esquerda"
+      },
+      {
+        "cmd": "mostrar",
+        "personagem": "fabiana",
+        "sprite": "fabiana_caos_pastas",
+        "posicao": "direita"
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "Perto da sala dos professores, o Prof. Gabriel está encostado na parede rindo enquanto a Profª Fabiana finalmente conseguiu uma caneca nova de café."
+      },
+      {
+        "cmd": "fala",
+        "quem": "gabriel",
+        "texto": "Olha só, sobreviveu às duas primeiras aulas! Já pode pedir música no Fantástico ou anistia histórica na CAI."
+      },
+      {
+        "cmd": "fala",
+        "quem": "fabiana",
+        "acao": "dando um gole triunfante no café",
+        "texto": "Agora sim a poesia voltou a circular nas minhas veias! Toma aqui um copinho de café fresco antes que o sinal bata — ninguém merece enfrentar aula de exatas sem cafeína."
+      },
+      {
+        "cmd": "definir",
+        "var": "energiaCafeinada",
+        "valor": true
+      },
+      {
+        "cmd": "reputacao",
+        "personagem": "gabriel",
+        "valor": 10
+      },
+      {
+        "cmd": "reputacao",
+        "personagem": "fabiana",
+        "valor": 10
+      },
+      {
+        "cmd": "aviso",
+        "texto": "Buff ativo: Energia Cafeinada • Afinidade +10 com Gabriel e Fabiana.",
+        "positivo": true
+      },
+      {
+        "cmd": "esconder",
+        "personagem": "gabriel"
+      },
+      {
+        "cmd": "esconder",
+        "personagem": "fabiana"
+      },
+      {
+        "cmd": "ir",
+        "no": "encerramento_ato2"
+      }
+    ],
+    "encerramento_ato2": [
+      {
+        "cmd": "musica",
+        "id": null
+      },
+      {
+        "cmd": "aviso",
+        "texto": "SINAL DE FIM DO INTERVALO • TRIIIIIM!",
+        "positivo": true
+      },
+      {
+        "cmd": "fala",
+        "quem": "narrador",
+        "texto": "Os vinte minutos passam em um piscar de olhos. Com a mochila mais pesada — de conhecimento, biscoitos ou histórias —, você volta para o bloco acadêmico sabendo que o final do turno está chegando e, com ele, a hora de encarar as consequências das suas escolhas na CAI."
+      },
+      {
+        "cmd": "fim_ato",
+        "titulo": "Fim do Ato II",
+        "proximo": "Ato III — A Reta Final do Turno e o Balcão da CAI"
+      }
+    ]
+  }
+}

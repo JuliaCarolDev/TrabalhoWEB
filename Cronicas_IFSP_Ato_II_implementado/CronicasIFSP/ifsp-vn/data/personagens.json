@@ -1,0 +1,57 @@
+{
+  "narrador": {
+    "nome": "",
+    "cor": "#f2f5f0",
+    "estilo": "narracao"
+  },
+  "protagonista": {
+    "nome": "Você",
+    "cor": "#7cc4ff",
+    "estilo": "normal"
+  },
+  "fabiana": {
+    "nome": "Profª Fabiana",
+    "cor": "#e8a23c",
+    "estilo": "normal"
+  },
+  "fabio": {
+    "nome": "Fábio",
+    "cor": "#e8453c",
+    "estilo": "normal"
+  },
+  "ana_lucia": {
+    "nome": "Profª Ana Lúcia",
+    "cor": "#c9a6e8",
+    "estilo": "normal"
+  },
+  "gabriel": {
+    "nome": "Prof. Gabriel",
+    "cor": "#e8a23c",
+    "estilo": "normal"
+  },
+  "paula": {
+    "nome": "Profª Paula",
+    "cor": "#7cc4ff",
+    "estilo": "normal"
+  },
+  "carol": {
+    "nome": "Diretora Carol",
+    "cor": "#f0a8bd",
+    "estilo": "normal"
+  },
+  "marcos": {
+    "nome": "Prof. Marcos",
+    "cor": "#e8c65a",
+    "estilo": "normal"
+  },
+  "turma": {
+    "nome": "Turma",
+    "cor": "#d8e2da",
+    "estilo": "normal"
+  },
+  "aluno_a": {
+    "nome": "Aluno A",
+    "cor": "#b9d9f2",
+    "estilo": "normal"
+  }
+}
