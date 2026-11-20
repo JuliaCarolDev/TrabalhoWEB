@@ -1,0 +1,33 @@
+/* O CSS só cuida de ESCALAR o canvas na janela.
+   Todo o desenho do jogo acontece dentro do canvas, em resolução fixa. */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  background: #0d1411;
+  overflow: hidden;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#tela {
+  /* Mantém 16:9 e encaixa na janela sem distorcer (letterbox) */
+  width: min(100vw, calc(100vh * 16 / 9));
+  height: auto;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#tela:focus-visible {
+  outline: 3px solid #2f9e41;
+  outline-offset: -3px;
+}
