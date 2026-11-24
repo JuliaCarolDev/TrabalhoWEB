@@ -1,0 +1,62 @@
+{
+  "_comentario": "Manifesto: liga o ID usado no roteiro ao caminho real do arquivo. Para trocar um arquivo, mude só aqui.",
+  "fundos": {
+    "bg_corredor_manha": "",
+    "bg_biblioteca_manha": "",
+    "bg_sala_de_aula": "",
+    "bg_corredor_intervalo": "",
+    "bg_biblioteca": "",
+    "bg_diretoria": "",
+    "bg_patio_artes": "",
+    "bg_sala_de_aula_tarde": "",
+    "bg_corredor_cai": "",
+    "bg_sala_cai": "",
+    "bg_corredor_principal": "",
+    "bg_portao_saida": "",
+    "bg_cantina_intervalo": "",
+    "bg_corredor_professores": "",
+    "bg_biblioteca_tarde": "",
+    "bg_auditorio_entrada": "",
+    "bg_bastidores_palco": "",
+    "bg_auditorio_plateia": "",
+    "bg_corredor_laboratorios": "",
+    "bg_laboratorio_biologia": "",
+    "bg_biblioteca_sala_estudo": "",
+    "bg_sala_professores": ""
+  },
+  "sprites": {
+    "fabiana_equilibrando_pastas": "",
+    "fabio_sorriso_calmo": "",
+    "fabio_observando": "",
+    "analucia_sorriso_provocador": "",
+    "gabriel_sorriso_zoando": "",
+    "fabiana_caos_pastas": "",
+    "paula_energetica": "",
+    "carol_sorriso_doce": "",
+    "marcos_dramatico": "",
+    "fabiana_desesperada_sorrindo": "",
+    "marcos_gala_dramatico": "",
+    "paula_energetica_jaleco": "",
+    "fabiana_cafe_feliz": ""
+  },
+  "musicas": {
+    "bgm_tensao_cai": "",
+    "bgm_fim_turno_leve": "",
+    "bgm_intervalo_livre": "",
+    "bgm_filosofia_leve": "",
+    "bgm_literatura_leve": "",
+    "bgm_mostra_cultural": "",
+    "bgm_biologia_energia": "",
+    "bgm_historia_misterio": "",
+    "bgm_sala_professores": ""
+  },
+  "sfx": {
+    "sfx_sinal": "",
+    "sfx_batida_porta": "",
+    "sfx_papeis": "",
+    "sfx_shhh": "",
+    "sfx_quadro": "",
+    "sfx_caneca": "",
+    "sfx_camera": ""
+  }
+}
