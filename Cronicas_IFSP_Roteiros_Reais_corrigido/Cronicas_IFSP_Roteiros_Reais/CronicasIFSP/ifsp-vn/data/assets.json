@@ -1,0 +1,42 @@
+{
+  "_comentario": "Manifesto: liga o ID usado no roteiro ao caminho real do arquivo. Para trocar um arquivo, mude só aqui.",
+  "fundos": {
+    "bg_corredor_manha": "https://i.pinimg.com/1200x/5e/5f/56/5e5f56fede097905aeed4685ab2f3b39.jpg",
+    "bg_biblioteca_manha": "https://i.pinimg.com/1200x/b1/e8/05/b1e80568994b08dbd1c3c6231d620e03.jpg",
+    "bg_sala_de_aula": "https://i.pinimg.com/736x/9e/6b/46/9e6b4640ebe80ccbc9cd82863945186b.jpg",
+    "bg_corredor_intervalo": "https://i.pinimg.com/1200x/5e/5f/56/5e5f56fede097905aeed4685ab2f3b39.jpg",
+    "bg_biblioteca": "https://i.pinimg.com/1200x/a0/94/9a/a0949a41789dd14108e09f16085d39ea.jpg",
+    "bg_diretoria": "https://i.pinimg.com/1200x/89/5b/b2/895bb23697c51dba3a8380bcf26bf4cc.jpg",
+    "bg_patio_artes": "https://i.pinimg.com/736x/15/3a/9d/153a9df5f3625394f514011aefd2f6ac.jpg",
+    "bg_sala_de_aula_tarde": "https://i.pinimg.com/736x/9e/6b/46/9e6b4640ebe80ccbc9cd82863945186b.jpg",
+    "bg_corredor_cai": "https://i.pinimg.com/736x/6e/dd/4e/6edd4ebbcb8108695ca001fa71c3bf61.jpg",
+    "bg_sala_cai": "https://i.pinimg.com/736x/91/fd/43/91fd43097807be039676e30dcf2b9e38.jpg",
+    "bg_corredor_principal": "https://i.pinimg.com/1200x/5e/5f/56/5e5f56fede097905aeed4685ab2f3b39.jpg",
+    "bg_portao_saida": "https://i.pinimg.com/736x/f5/7d/a7/f57da76906e1fe83ea11e075a978c1fd.jpg",
+    "bg_cantina_intervalo": "https://i.pinimg.com/1200x/58/a0/8f/58a08f033b250e207d3e74e03ad0158d.jpg",
+    "bg_corredor_professores": "https://i.pinimg.com/1200x/5e/5f/56/5e5f56fede097905aeed4685ab2f3b39.jpg",
+    "bg_biblioteca_tarde": "https://i.pinimg.com/1200x/a0/94/9a/a0949a41789dd14108e09f16085d39ea.jpg",
+    "bg_auditorio_entrada": "https://i.pinimg.com/736x/81/0d/84/810d847aa3d1108e8a072a7dc4d0729a.jpg",
+    "bg_bastidores_palco": "https://i.pinimg.com/1200x/59/8b/1c/598b1c0d92ee11bef7f06d5ba1cf1977.jpg",
+    "bg_auditorio_plateia": "https://i.pinimg.com/736x/ba/82/06/ba820690f81a83cd27cc167bb6fbf022.jpg",
+    "bg_corredor_laboratorios": "https://i.pinimg.com/736x/82/5f/48/825f484e1f70a1294e9a3618687286df.jpg",
+    "bg_laboratorio_biologia": "https://i.pinimg.com/736x/b1/d3/3d/b1d33d03d21534940cc43fe6e884fa69.jpg",
+    "bg_biblioteca_sala_estudo": "https://i.pinimg.com/1200x/a0/94/9a/a0949a41789dd14108e09f16085d39ea.jpg",
+    "bg_sala_professores": "https://i.pinimg.com/1200x/45/72/a4/4572a4c22c533fe5da2679b3c5f1dfff.jpg"
+  },
+  "sprites": {
+    "fabiana_equilibrando_pastas": "",
+    "fabio_sorriso_calmo": "",
+    "fabio_observando": "",
+    "analucia_sorriso_provocador": "",
+    "gabriel_sorriso_zoando": "",
+    "fabiana_caos_pastas": "",
+    "paula_energetica": "",
+    "carol_sorriso_doce": "",
+    "marcos_dramatico": "",
+    "fabiana_desesperada_sorrindo": "",
+    "marcos_gala_dramatico": "",
+    "paula_energetica_jaleco": "",
+    "fabiana_cafe_feliz": ""
+  }
+}
